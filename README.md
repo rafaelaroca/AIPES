@@ -2,9 +2,11 @@
 AI Platform for Embedded Systems
 
 For microcontrollers:
+
 https://aipes.com.br
 
 For Smartphones:
+
 https://aipes.com.br/pwa/
 
 

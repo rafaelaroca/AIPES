@@ -1,6 +1,13 @@
 # AIPES
 AI Platform for Embedded Systems
 
+For microcontrollers:
+https://aipes.com.br
+
+For Smartphones:
+https://aipes.com.br/pwa/
+
+
 AIPES is a cloud based IDE that merges Artificial Intelligence and remote compilation. It allows you to program microcontrollers directly from your web browser without installing any local software.
 
 It was created as evolution of BIPES project (https://bipes.net.br/ide/) / (https://github.com/BIPES/BIPES) on the IA era!

@@ -1,0 +1,1221 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIPES - Artificial Intelligence Platform for Embedded Systems</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
+
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --panel-bg: #2d2d2d;
+            --text-color: #cccccc;
+            --accent-color: #007acc;
+            --success-color: #4CAF50;
+            --error-color: #f44336;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; height: 100vh; display: flex; flex-direction: column; }
+
+        header { background-color: #007acc; color: white; padding: 15px 20px; font-size: 1.2rem; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .subtitle { font-size: 0.9rem; font-weight: normal; opacity: 0.9; }
+
+        /* Botão de idioma corrigido (flex: none) */
+        .lang-toggle { background-color: rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; flex: none; }
+        .lang-toggle:hover { background-color: rgba(0,0,0,0.4); }
+
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+
+        /* Painel Esquerdo */
+        .left-panel { width: 35%; display: flex; flex-direction: column; border-right: 1px solid #444; background-color: var(--panel-bg); }
+        #prompt-history { flex: 1; padding: 20px; overflow-y: auto; border-bottom: 1px solid #444; }
+        .msg-user { margin-bottom: 15px; color: #fff; }
+        .msg-sys { margin-bottom: 15px; color: #88d49e; font-style: italic; }
+        .input-area { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        textarea#user-prompt { width: 100%; height: 80px; background-color: #1e1e1e; color: white; border: 1px solid #555; padding: 10px; border-radius: 4px; resize: none; box-sizing: border-box; }
+        .button-group { display: flex; gap: 10px; }
+        button { background-color: var(--accent-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; transition: background 0.3s; }
+        button:hover { background-color: #005f9e; }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+
+        /* Painel Direito */
+        .right-panel { width: 65%; display: flex; flex-direction: column; }
+        .editor-header { padding: 10px 20px; background-color: #333; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center; }
+        .editor-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; background-color: #272822; }
+        .CodeMirror { flex: 1; height: 100%; font-family: 'Courier New', Courier, monospace; font-size: 15px; }
+
+        /* --- NOVO: Estilo das Abas --- */
+        .log-panel-container { height: 280px; background-color: #000; border-top: 1px solid #444; display: flex; flex-direction: column; }
+        .tabs-header { display: flex; background-color: #222; border-bottom: 1px solid #444; }
+        .tab-btn { background: none; border: none; color: #888; padding: 10px 20px; cursor: pointer; font-weight: bold; border-radius: 0; flex: none; }
+        .tab-btn.active { color: white; border-bottom: 2px solid var(--accent-color); background-color: #111; }
+        .tab-btn:hover { color: #ccc; }
+
+        .tab-content { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+        .tab-content.active { display: flex; } /* Mostra apenas a aba ativa */
+
+        /* Conteúdo interno das abas */
+        #compile-log { flex: 1; margin: 0; padding: 15px; overflow-y: auto; font-family: monospace; white-space: pre-wrap; color: #ccc; }
+        #botoes-upload { padding: 10px; background-color: #222; display: none; border-top: 1px solid #444; align-items: center; gap: 10px; }
+        .btn-upload { background-color: #28a745; flex: none; padding: 8px 15px; }
+        .btn-upload:hover { background-color: #218838; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <div>AIPES</div>
+            <div class="subtitle" data-i18n="subtitle">Artificial Intelligence Platform for Embedded Systems</div>
+        </div>
+	<div style="display: flex; gap: 10px;">
+	    
+		<a href="docs.html" target="_blank" style="background: #333; color: white; border: 1px solid #555; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 0.9em; display: flex; align-items: center;">
+                    📚 <span data-i18n="btn_docs" style="margin-left: 5px;">Docs / Manual</span>
+                </a>
+
+		<button class="lang-toggle" onclick="window.location.href='https://aipes.com.br'" data-i18n="btn_new">📄 Novo Projeto</button>
+
+            <button class="lang-toggle" onclick="shareProject()" style="background-color: #28a745; border-color: #28a745;" data-i18n="btn_share">🔗 Compartilhar</button>
+
+            <button class="lang-toggle" onclick="toggleLanguage()">🇧🇷 PT / 🇺🇸 EN</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div id="prompt-history">
+                <div class="msg-sys" data-i18n="msg_sys_hello">Olá! O que você deseja fazer hoje?</div>
+            </div>
+            <div class="input-area">
+                <textarea id="user-prompt" placeholder="Digite seu pedido..."></textarea>
+
+		<div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                    <label style="font-size: 0.9em; font-weight: bold; color: #ccc;">Placa:</label>
+                    <select id="board-select" style="background: #222; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; flex: 1;">
+                        <option value="esp32c3">ESP32-C3 Super Mini</option>
+                        <option value="esp32">ESP32 Clássica (WROOM/WROVER)</option>
+                    </select>
+                </div>
+
+		<div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                    <label style="font-size: 0.9em; font-weight: bold; color: #ccc;" data-i18n="lbl_ota_mode">Modo de Gravação / OTA:</label>
+		    <select id="ota-mode" style="background: #222; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; flex: 1;">
+                        <option value="none">Apenas USB (Máx Memória)</option>
+                        <option value="wifi_sta">WiFi OTA (Conectar a uma Rede)</option>
+                        <option value="wifi_ap">WiFi OTA (Criar Rede / Access Point)</option>
+                        <option value="ble">Bluetooth BLE OTA (Lento)</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button id="btn-falar" onclick="startSpeech()" style="flex: 0.5;" data-i18n="btn_falar">🎤 Falar</button>
+                    <button id="btn-gerar" onclick="sendToGemini()" data-i18n="btn_gerar">✨ Gerar / Ajustar Código</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="editor-header">
+                <span data-i18n="editor_title">Código C++ (Arduino Framework)</span>
+
+		<div style="display: flex; gap: 10px; align-items: center;">
+                    <button onclick="editor.undo()" style="background: transparent; border: 1px solid #555; color: #ccc; padding: 5px 10px; border-radius: 4px; cursor: pointer; flex: none;" data-i18n="btn_undo" title="Desfazer (Ctrl+Z)">↩️ Desfazer</button>
+
+                    <button onclick="editor.redo()" style="background: transparent; border: 1px solid #555; color: #ccc; padding: 5px 10px; border-radius: 4px; cursor: pointer; flex: none;" data-i18n="btn_redo" title="Refazer (Ctrl+Y)">↪️ Refazer</button>
+
+                    <button id="btn-compilar" onclick="compileCode()" style="max-width: 150px;" data-i18n="btn_compilar">⚙️ Compilar</button>
+                </div>
+
+            </div>
+
+            <div class="editor-wrapper">
+                <textarea id="editor-container" spellcheck="false">// O código gerado pela IA aparecerá aqui...
+void setup() {
+  Serial.begin(115200);
+}
+
+void loop() {
+  Serial.println("AIPES ESP32-C3");
+  delay(1000);
+}</textarea>
+            </div>
+
+            <div class="log-panel-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchTab('tab-compile')" id="btn-tab-compile" data-i18n="tab_compile">Resultado da Compilação</button>
+                    <button class="tab-btn" onclick="switchTab('tab-serial')" id="btn-tab-serial" data-i18n="tab_serial">Monitor Serial</button>
+		    <button class="tab-btn" onclick="switchTab('tab-plotter')" id="btn-tab-plotter" data-i18n="tab_plotter">📈 Plotter Serial</button>
+                </div>
+
+                <div id="tab-compile" class="tab-content active">
+                    <pre id="compile-log" data-i18n="log_waiting">Aguardando compilação...</pre>
+                    <div id="botoes-upload" data-bin-url="">
+                        <span style="font-weight: bold; color: white;" data-i18n="upload_prompt">Upload:</span>
+                        <button class="btn-upload" onclick="uploadWebSerial()">USB (WebSerial)</button>
+                        <button class="btn-upload" onclick="uploadWifi()">WiFi (OTA)</button>
+                        <button class="btn-upload" onclick="uploadBLE()">Bluetooth (BLE)</button>
+                    </div>
+
+		    <div style="display: flex; justify-content: flex-end; padding: 10px; background: #222; border-top: 1px solid #444;">
+                        <button onclick="askAIAboutCompileLog()" style="background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 5px 15px; flex: none; font-size: 0.9em;" data-i18n="btn_ai_log">🤖 Perguntar à IA (Erro)</button>
+                    </div>
+
+                </div>
+
+                <div id="tab-serial" class="tab-content">
+                    <div style="display: flex; justify-content: space-between; background: #222; padding: 10px; border-bottom: 1px solid #444;">
+                        <button id="btn-serial-connect" class="btn-upload" style="background-color: #17a2b8;" onclick="toggleSerialMonitor()" data-i18n="btn_serial_connect">🔌 Conectar</button>
+
+			<button onclick="askAIAboutSerial()" style="background: transparent; border: 1px solid #88d49e; color: #88d49e; flex: none; padding: 5px 15px;" data-i18n="btn_ai_serial">🤖 Analisar com IA</button>
+
+                        <button onclick="document.getElementById('serial-output').innerText=''" style="background: transparent; border: 1px solid #888; color: #ccc; flex: none; padding: 5px 15px;" data-i18n="btn_serial_clear">Limpar Tela</button>
+                    </div>
+                    <pre id="serial-output" style="margin: 0; padding: 15px; flex: 1; overflow-y: auto; color: #0f0; font-family: monospace; white-space: pre-wrap; font-size: 14px;">Aguardando conexão...</pre>
+                </div>
+
+
+
+
+		<div id="tab-plotter" class="tab-content" style="background: #000; flex-direction: column;">
+                    <div style="display: flex; justify-content: flex-end; background: #222; padding: 10px; border-bottom: 1px solid #444;">
+                        <button onclick="clearPlotter()" style="background: transparent; border: 1px solid #888; color: #ccc; flex: none; padding: 5px 15px;" data-i18n="btn_serial_clear">Limpar Gráfico</button>
+                    </div>
+                    <div style="flex: 1; padding: 10px; overflow: hidden; position: relative;">
+                        <canvas id="plotter-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
+
+    <script>
+        // ==========================================
+        // SISTEMA DE TRADUÇÃO (i18n)
+        // ==========================================
+        const dict = {
+            pt: {
+                subtitle: "Plataforma de IA para Sistemas Embarcados",
+                btn_falar: "🎤 Falar", btn_gerar: "✨ Gerar / Ajustar Código", btn_compilar: "⚙️ Compilar",
+                editor_title: "Código Fonte", log_waiting: "Aguardando compilação...",
+                upload_prompt: "Gravar na Placa:", placeholder: "Digite seu pedido para a IA...",
+                msg_sys_hello: "Olá! O que você deseja fazer hoje?",
+                status_thinking: "⏳ Pensando...", status_sending: "Enviando...", status_compiling: "Compilando...",
+                tab_compile: "Resultado da Compilação", tab_serial: "Monitor Serial",
+                btn_serial_connect: "🔌 Conectar (115200 baud)", btn_serial_disconnect: "❌ Desconectar", btn_serial_clear: "Limpar Tela",
+		btn_share: "🔗 Compartilhar",
+                share_success: "Link copiado para a área de transferência:\n",
+		btn_ai_log: "🤖 Perguntar à IA (Erro)",
+                btn_ai_serial: "🤖 Analisar com IA",
+		tab_plotter: "📈 Plotter Serial",
+		btn_new: "📄 Novo Projeto",
+                btn_undo: "↩️ Desfazer",
+                btn_redo: "↪️ Refazer"
+
+            },
+            en: {
+                subtitle: "AI Platform for Embedded Systems",
+                btn_falar: "🎤 Speak", btn_gerar: "✨ Generate / Adjust Code", btn_compilar: "⚙️ Compile",
+                editor_title: "Source Code", log_waiting: "Waiting for compilation...",
+                upload_prompt: "Upload to Board:", placeholder: "Type your request for the AI...",
+                msg_sys_hello: "Hello! What do you want to do today?",
+                status_thinking: "⏳ Thinking...", status_sending: "Sending...", status_compiling: "Compiling...",
+                tab_compile: "Compilation Result", tab_serial: "Serial Monitor",
+                btn_serial_connect: "🔌 Connect (115200 baud)", btn_serial_disconnect: "❌ Disconnect", btn_serial_clear: "Clear Screen",
+		btn_share: "🔗 Share",
+                share_success: "Link copied to clipboard:\n",
+		btn_ai_log: "🤖 Ask AI (Error)",
+                btn_ai_serial: "🤖 Analyze with AI",
+		tab_plotter: "📈 Serial Plotter",
+		btn_new: "📄 New Project",
+                btn_undo: "↩️ Undo",
+                btn_redo: "↪️ Redo"
+
+            }
+        };
+
+        //let currentLang = 'pt';
+
+        //function toggleLanguage() { currentLang = currentLang === 'pt' ? 'en' : 'pt'; applyTranslations(); }
+
+
+	// ==========================================
+        // DETECÇÃO DE IDIOMA E URL
+        // ==========================================
+        const urlParamsGlobal = new URLSearchParams(window.location.search);
+        let currentLang = urlParamsGlobal.get('lang');
+
+        // Se a URL não tiver um idioma definido, detecta o idioma do sistema do usuário
+        if (currentLang !== 'pt' && currentLang !== 'en') {
+            const browserLang = navigator.language || navigator.userLanguage;
+            // Se o navegador for português, usa 'pt'. Para o resto do mundo, usa 'en'.
+            currentLang = browserLang.toLowerCase().startsWith('pt') ? 'pt' : 'en';
+            
+            // Já injeta o idioma detectado na URL silenciosamente
+            const urlAtual = new URL(window.location.href);
+            urlAtual.searchParams.set('lang', currentLang);
+            window.history.replaceState({}, '', urlAtual);
+        }
+
+        function toggleLanguage() { 
+            currentLang = currentLang === 'pt' ? 'en' : 'pt'; 
+            applyTranslations(); 
+            
+            // Atualiza a URL quando o usuário clica no botão, sem recarregar a página
+            const urlAtual = new URL(window.location.href);
+            urlAtual.searchParams.set('lang', currentLang);
+            window.history.replaceState({}, '', urlAtual);
+        }
+
+        function applyTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(dict[currentLang][key]) el.innerText = dict[currentLang][key];
+            });
+            document.getElementById('user-prompt').placeholder = dict[currentLang]['placeholder'];
+        }
+
+        // Inicialização CodeMirror
+        const editor = CodeMirror.fromTextArea(document.getElementById("editor-container"), {
+            lineNumbers: true, mode: "text/x-c++src", theme: "monokai", indentUnit: 2, tabSize: 2
+        });
+        applyTranslations();
+        setTimeout(() => editor.refresh(), 100);
+
+        // ==========================================
+        // LÓGICA DAS ABAS
+        // ==========================================
+
+	function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            // Identifica qual botão ativar
+            let btnId = 'btn-' + tabId;
+            document.getElementById(btnId).classList.add('active');
+            
+            // Força o desenho se a aba selecionada for a do plotter
+            if (tabId === 'tab-plotter') {
+                requestAnimationFrame(drawPlotter);
+            }
+        }
+
+        // Globais da fila
+        let projetoIdAtual = null; let loopVerificacao = null;
+
+	// ==========================================
+        // RECONHECIMENTO DE VOZ (Web Speech API)
+        // ==========================================
+        function startSpeech() {
+            const promptInput = document.getElementById('user-prompt');
+            const btnFalar = document.getElementById('btn-falar');
+
+            // Verifica se o navegador suporta a API
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                alert(currentLang === 'pt' ? 
+                    "Seu navegador não suporta reconhecimento de voz. Tente usar o Google Chrome." : 
+                    "Your browser doesn't support speech recognition. Try Google Chrome.");
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            // Define o idioma com base na interface atual
+            recognition.lang = currentLang === 'pt' ? 'pt-BR' : 'en-US';
+            recognition.interimResults = false; // Aguarda a pessoa terminar de falar para processar
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = function() {
+                // Muda o botão para vermelho pulsante (ou apenas vermelho) para indicar gravação
+                btnFalar.style.backgroundColor = "#dc3545"; 
+                btnFalar.style.borderColor = "#dc3545";
+                btnFalar.innerText = currentLang === 'pt' ? "🎙️ Ouvindo..." : "🎙️ Listening...";
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                
+                // Se já tiver texto na caixa, adiciona um espaço antes da nova frase
+                if (promptInput.value.length > 0 && !promptInput.value.endsWith(" ")) {
+                    promptInput.value += " " + transcript;
+                } else {
+                    promptInput.value += transcript;
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Erro no microfone: ", event.error);
+                if (event.error === 'not-allowed') {
+                    alert(currentLang === 'pt' ? "Permissão do microfone negada." : "Microphone permission denied.");
+                }
+            };
+
+            recognition.onend = function() {
+                // Restaura o visual original do botão
+                btnFalar.style.backgroundColor = ""; 
+                btnFalar.style.borderColor = "";
+                btnFalar.innerText = dict[currentLang]['btn_falar'];
+            };
+
+            recognition.start();
+        }
+
+	async function sendToGemini() {
+	    const tipoOta = document.getElementById('ota-mode').value;
+            const promptTexto = document.getElementById('user-prompt').value.trim();
+            const historyDiv = document.getElementById('prompt-history');
+            const btnGerar = document.getElementById('btn-gerar');
+	    const placaSelecionada = document.getElementById('board-select').value;
+
+            if(!promptTexto) return;
+            
+            historyDiv.innerHTML += `<div class="msg-user"><b>${currentLang === 'pt' ? 'Você' : 'You'}:</b> ${promptTexto}</div>`;
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+            
+            btnGerar.disabled = true;
+            btnGerar.innerText = dict[currentLang]['status_thinking'];
+            
+            try {
+                const res = await fetch('api/gemini.php', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+		    body: JSON.stringify({ prompt: promptTexto, codigo_atual: editor.getValue(), tipo_ota: tipoOta, placa: placaSelecionada })
+                });
+                
+                // Lê como texto primeiro para podermos ver se o PHP quebrou
+                const textResponse = await res.text(); 
+                
+                try {
+                    const data = JSON.parse(textResponse);
+                    
+                    if(data.sucesso) {
+                        editor.setValue(data.codigo);
+                        document.getElementById('user-prompt').value = '';
+                        
+                        // Injeta a explicação formatada na tela de chat
+                        const icone = '🤖 <b>AIPES:</b>';
+                        historyDiv.innerHTML += `
+                            <div class="msg-sys" style="color: #ccc; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border-left: 3px solid var(--accent-color);">
+                                ${icone}<br><br>${data.explicacao}
+                            </div>`;
+                    } else {
+                        historyDiv.innerHTML += `<div class="msg-sys" style="color: var(--error-color);">❌ Erro do Servidor: ${data.erro}</div>`;
+                    }
+                } catch (jsonError) {
+                    console.error("Resposta inválida do PHP:", textResponse);
+                    historyDiv.innerHTML += `<div class="msg-sys" style="color: var(--error-color);">❌ Erro PHP (Veja o console do navegador). Resposta crua: ${textResponse.substring(0, 50)}...</div>`;
+                }
+
+            } catch (e) {
+                historyDiv.innerHTML += `<div class="msg-sys" style="color: var(--error-color);">❌ Falha de Rede: ${e.message}</div>`;
+            }
+            
+            btnGerar.disabled = false;
+            btnGerar.innerText = dict[currentLang]['btn_gerar'];
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+        }
+
+	async function checkCompilationStatus(jobId) {
+            try {
+                const res = await fetch(`api/status.php?job_id=${jobId}`);
+                const data = await res.json();
+                if (data.sucesso && (data.dados.status === 'sucesso' || data.dados.status === 'erro')) {
+                    clearInterval(loopVerificacao);
+                    document.getElementById('btn-compilar').innerText = dict[currentLang]['btn_compilar'];
+                    
+                    const logArea = document.getElementById('compile-log');
+                    
+                    if (data.dados.status === 'sucesso') {
+                        logArea.style.color = "var(--success-color)";
+                        logArea.innerText = data.dados.log_compilacao + (currentLang === 'pt' ? "\n\n✅ SUCESSO!" : "\n\n✅ SUCCESS!");
+
+
+			// Salva a "Trindade" no HTML para uso no momento do upload
+			const btnBox = document.getElementById('botoes-upload');
+			btnBox.setAttribute('data-bin-url', data.dados.caminho_binario);
+			btnBox.setAttribute('data-boot-url', data.dados.caminho_bootloader);
+			btnBox.setAttribute('data-part-url', data.dados.caminho_particoes);
+			btnBox.setAttribute('data-boot-offset', data.dados.offset_bootloader);
+			btnBox.style.display = 'flex';
+				
+                    } else {
+                        logArea.style.color = "var(--error-color)";
+                        logArea.innerText = data.dados.log_compilacao + (currentLang === 'pt' ? "\n\n❌ ERRO NA COMPILAÇÃO!" : "\n\n❌ COMPILATION ERROR!");
+                    }
+                    
+                    // Rola a caixa de texto automaticamente para o final
+                    logArea.scrollTop = logArea.scrollHeight;
+                }
+            } catch (e) {
+                console.error("Erro ao checar status:", e);
+            }
+        }
+
+	// ==========================================
+        // MONITOR SERIAL (NOVO E CORRIGIDO)
+        // ==========================================
+        let serialPort = null;
+        let serialReader = null;
+        let serialKeepReading = false;
+
+        async function toggleSerialMonitor() {
+            const btnConnect = document.getElementById('btn-serial-connect');
+            const output = document.getElementById('serial-output');
+
+            // SE JÁ ESTIVER LENDO: Inicia o processo de desconexão
+            if (serialKeepReading) {
+                serialKeepReading = false; // Sinaliza para o loop parar
+                if (serialReader) {
+                    await serialReader.cancel(); // Aborta a leitura pendente instantaneamente
+                }
+                return; // O fechamento real da porta acontece no bloco 'finally' da função readSerialLoop
+            }
+
+            // SE NÃO ESTIVER LENDO: Conecta
+            try {
+                serialPort = await navigator.serial.requestPort();
+                await serialPort.open({ baudRate: 115200 }); 
+                
+                btnConnect.innerText = dict[currentLang]['btn_serial_disconnect'];
+                btnConnect.style.backgroundColor = "var(--error-color)";
+                output.innerText += (currentLang === 'pt' ? "\n[Conectado na placa]\n" : "\n[Connected to board]\n");
+                
+                serialKeepReading = true;
+                
+                // Inicia o laço de leitura em background
+                readSerialLoop();
+                
+            } catch (error) {
+                output.innerText += "\nErro: " + error.message;
+            }
+        }
+
+        async function readSerialLoop() {
+            const output = document.getElementById('serial-output');
+            const btnConnect = document.getElementById('btn-serial-connect');
+            const decoder = new TextDecoder(); // Decodificador manual
+
+            try {
+                // Loop principal que mantém a porta aberta
+                while (serialPort.readable && serialKeepReading) {
+                    serialReader = serialPort.readable.getReader();
+                    try {
+                        while (serialKeepReading) {
+                            const { value, done } = await serialReader.read();
+                            if (done) break; // Sai do loop se a leitura for cancelada
+                            if (value) {
+				const chunk = decoder.decode(value, { stream: true });
+
+                                // Decodifica os bytes para texto e joga na tela
+                                output.innerText += chunk;
+                                output.scrollTop = output.scrollHeight; 
+
+				// NOVO: Envia o texto para ser caçado por números no Plotter
+                                processPlotterData(chunk);
+                            }
+                        }
+                    } catch (error) {
+                        console.error("Erro lendo porta:", error);
+                    } finally {
+                        // Libera o leitor interno da porta
+                        serialReader.releaseLock();
+                    }
+                }
+            } finally {
+                // ESTE BLOCO GARANTE O FECHAMENTO DA PORTA 100% DAS VEZES
+                if (serialPort) {
+                    await serialPort.close();
+                    serialPort = null; // Limpa a variável para avisar o Upload que a porta está livre
+                }
+                serialKeepReading = false;
+                btnConnect.innerText = dict[currentLang]['btn_serial_connect'];
+                btnConnect.style.backgroundColor = "#17a2b8";
+                output.innerText += (currentLang === 'pt' ? "\n[Desconectado]\n" : "\n[Disconnected]\n");
+            }
+        }
+
+        // ==========================================
+        // UPLOAD WEBSERIAL (COM TRAVA DE SEGURANÇA)
+        // ==========================================
+
+	// ==========================================
+        // UPLOAD VIA CABO USB (WebSerial) - FULL FLASH
+        // ==========================================
+
+	// ==========================================
+        // UPLOAD VIA CABO USB (WebSerial) - FULL FLASH
+        // ==========================================
+        async function uploadWebSerial() {
+            const btnBox = document.getElementById('botoes-upload');
+            const logArea = document.getElementById('compile-log');
+
+            // Lê as URLs dos 3 arquivos e o offset do bootloader
+            const binUrl = btnBox.getAttribute('data-bin-url');
+            const bootUrl = btnBox.getAttribute('data-boot-url');
+            const partUrl = btnBox.getAttribute('data-part-url');
+            const bootOffset = parseInt(btnBox.getAttribute('data-boot-offset'));
+
+            if (!binUrl || !bootUrl || !partUrl) return;
+
+            // REGRA DE OURO: Força o monitor serial a fechar e espera a confirmação
+            if (typeof serialKeepReading !== 'undefined' && (serialKeepReading || serialPort !== null)) {
+                logArea.innerText += "\nFechando Monitor Serial para liberar a porta...\n";
+                if (serialKeepReading) {
+                    await toggleSerialMonitor(); // Manda fechar
+                }
+                // Trava o código aqui e espera ativamente até a porta dizer que fechou
+                while (serialPort !== null) {
+                    await new Promise(r => setTimeout(r, 50));
+                }
+                logArea.innerText += "Porta liberada com sucesso!\n";
+            }
+
+            logArea.style.color = "#ccc";
+            logArea.innerText += "Preparando WebSerial...\n";
+
+            try {
+                // Importação dinâmica (exatamente como no seu código original)
+                const { ESPLoader, Transport } = await import("https://unpkg.com/esptool-js@0.5.4/bundle.js");
+
+                logArea.innerText += "Solicitando porta serial...\n";
+                const port = await navigator.serial.requestPort();
+                const transport = new Transport(port);
+                
+                const esploader = new ESPLoader({
+                    transport: transport,
+                    baudrate: 460800,
+                    terminal: {
+			clean: () => {},
+                        writeLine: (data) => { console.log(data); },
+			write: (data) => { console.log(data); }
+                    }
+                });
+
+                logArea.innerText += "Conectando ao chip...\n";
+                await esploader.main();
+                logArea.innerText += "Chip detectado: " + esploader.chipName + "\n";
+
+                logArea.innerText += "Baixando arquivos (Aplicativo, Bootloader, Partições)...\n";
+
+                // Baixa os 3 arquivos
+                const appBuffer = await (await fetch(binUrl)).arrayBuffer();
+                const bootBuffer = await (await fetch(bootUrl)).arrayBuffer();
+                const partBuffer = await (await fetch(partUrl)).arrayBuffer();
+
+                // Função auxiliar para converter buffer em string binária (exigência do esptool-js v0.5.4)
+                const toBinaryString = (buffer) => {
+                    let binary = '';
+                    const bytes = new Uint8Array(buffer);
+                    for (let i = 0; i < bytes.byteLength; i++) {
+                        binary += String.fromCharCode(bytes[i]);
+                    }
+                    return binary;
+                };
+
+                logArea.innerText += "Preparando Full Flash na placa...\n";
+
+                // Monta o array de arquivos com seus endereços corretos
+                const fileArray = [
+                    { data: toBinaryString(bootBuffer), address: bootOffset },
+                    { data: toBinaryString(partBuffer), address: 0x8000 },
+                    { data: toBinaryString(appBuffer), address: 0x10000 }
+                ];
+
+                // Executa a gravação da Trindade!
+                await esploader.writeFlash({
+                    fileArray: fileArray,
+                    flashSize: "keep",
+                    eraseAll: true,
+		    compress: true, 
+                    reportProgress: (fileIndex, written, total) => {
+                        const pct = Math.round((written / total) * 100);
+                        logArea.innerText = logArea.innerText.replace(/Gravando arquivo \d+: \d+%\n?/, '');
+                        logArea.innerText += `Gravando arquivo ${fileIndex + 1}: ${pct}%\n`;
+                    }
+                });
+
+                logArea.innerText += "Concluído! Forçando reinicialização...\n";
+                
+                // Tenta o reset padrão da biblioteca
+                try {
+                    if (typeof esploader.hard_reset === 'function') {
+                        await esploader.hard_reset();
+                    }
+                } catch (e) {}
+
+                // O Segredo para a ESP32-C3: Pulsos manuais de DTR/RTS
+                try {
+                    await port.setSignals({ dataTerminalReady: false, requestToSend: true });
+                    await new Promise(r => setTimeout(r, 100));
+                    await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+                    await new Promise(r => setTimeout(r, 50));
+                } catch (e) {}
+
+                await transport.disconnect();
+                
+                logArea.style.color = "var(--success-color)";
+                logArea.innerText += (currentLang === 'pt' ? "\n✅ Upload feito com sucesso! Placa reiniciada.\n" : "\n✅ Upload successful! Board rebooted.\n");
+                
+            } catch (error) {
+                logArea.style.color = "var(--error-color)";
+                logArea.innerText += `\n❌ Erro: ${error.message}`;
+            }
+        }
+
+	// VERSAO ANTERIOR OK 
+        async function uploadWebSerialOld() {
+            const binUrl = document.getElementById('botoes-upload').getAttribute('data-bin-url');
+            const logArea = document.getElementById('compile-log');
+
+	    
+            
+            if (!binUrl) return;
+
+            // REGRA DE OURO: Força o monitor serial a fechar e espera a confirmação
+            if (serialKeepReading || serialPort !== null) {
+                logArea.innerText += "Fechando Monitor Serial para liberar a porta...\n";
+                if (serialKeepReading) {
+                    await toggleSerialMonitor(); // Manda fechar
+                }
+                // Trava o código aqui e espera ativamente até a porta dizer que fechou
+                while (serialPort !== null) {
+                    await new Promise(r => setTimeout(r, 50));
+                }
+                logArea.innerText += "Porta liberada com sucesso!\n";
+            }
+
+            logArea.style.color = "#ccc";
+            logArea.innerText += "Preparando WebSerial...\n";
+
+            try {
+                const { ESPLoader, Transport } = await import("https://unpkg.com/esptool-js@0.5.4/bundle.js");
+                const response = await fetch(binUrl);
+                const arrayBuffer = await response.arrayBuffer();
+                const bytes = new Uint8Array(arrayBuffer);
+                
+                let firmwareString = "";
+                for (let i = 0; i < bytes.length; i++) firmwareString += String.fromCharCode(bytes[i]);
+
+                const port = await navigator.serial.requestPort();
+                const transport = new Transport(port);
+
+                const esploader = new ESPLoader({
+                    transport: transport,
+                    baudrate: 460800, 
+                    terminal: { clean: () => {}, writeLine: () => {}, write: () => {} } 
+                });
+
+                logArea.innerText += "Conectando à placa...\n";
+                await esploader.main();
+                
+                await esploader.writeFlash({
+                    fileArray: [{ data: firmwareString, address: 0x10000 }],
+                    flashSize: "keep", eraseAll: true, compress: true,
+                    reportProgress: (fileIndex, written, total) => {
+                        logArea.innerText = logArea.innerText.replace(/Gravando: \d+%\n?/, '');
+                        logArea.innerText += `Gravando: ${Math.round((written / total) * 100)}%\n`;
+                    }
+                });
+
+                
+                logArea.innerText += "Concluído! Forçando reinicialização...\n";
+                
+                try {
+                    // 1. Tenta o reset padrão da biblioteca
+                    if (typeof esploader.hard_reset === 'function') {
+                        await esploader.hard_reset();
+                    }
+                } catch (e) {}
+
+                try {
+                    // 2. O Segredo para a ESP32-C3: Pulsos manuais de DTR/RTS no navegador
+                    await port.setSignals({ dataTerminalReady: false, requestToSend: true });
+                    await new Promise(r => setTimeout(r, 100)); // Aguarda 100ms
+                    await port.setSignals({ dataTerminalReady: false, requestToSend: false });
+                    await new Promise(r => setTimeout(r, 50));
+                } catch (e) {
+                    console.log("Aviso interno: Falha ao enviar pulso DTR/RTS.");
+                }
+
+                // 3. Desconecta de forma segura
+                await transport.disconnect();
+                
+                logArea.style.color = "var(--success-color)";
+                logArea.innerText += (currentLang === 'pt' ? "\n✅ Upload feito com sucesso! Placa reiniciada.\n" : "\n✅ Upload successful! Board rebooted.\n");
+                
+            } catch (error) {
+                logArea.style.color = "var(--error-color)";
+                logArea.innerText += `\n❌ Erro: ${error.message}`;
+            }
+        }
+
+	//=================================
+	// WIFI UPLOAD
+	//=================================
+	async function uploadWifi() {
+            const binUrl = document.getElementById('botoes-upload').getAttribute('data-bin-url');
+            const logArea = document.getElementById('compile-log');
+            if (!binUrl) return;
+
+	    // Descobre qual foi o modo WiFi selecionado
+            const tipoOta = document.getElementById('ota-mode').value;
+            let ipSugerido = (tipoOta === 'wifi_ap') ? '192.168.4.1' : '';
+
+            // Pede o IP da placa ao utilizador com a sugestão preenchida
+            const ip = prompt(
+                currentLang === 'pt' ? "Digite o IP da ESP32-C3 (AP padrão: 192.168.4.1):" : "Enter ESP32-C3 IP (Default AP: 192.168.4.1):", 
+                ipSugerido
+            );
+            if (!ip) return;
+
+            logArea.style.color = "#ccc";
+            logArea.innerText += `\nPreparando WiFi OTA para http://${ip}...\n`;
+
+            try {
+                logArea.innerText += "Baixando binário do servidor...\n";
+                const response = await fetch(binUrl);
+                const blob = await response.blob();
+
+                const formData = new FormData();
+                formData.append("update", blob, "firmware.bin");
+
+                // Usamos XHR para podermos capturar o progresso (percentagem)
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", `http://${ip}/update`, true);
+                
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        const progress = Math.round((e.loaded / e.total) * 100);
+                        logArea.innerText = logArea.innerText.replace(/Enviando via WiFi: \d+%\n?/, '');
+                        logArea.innerText += `Enviando via WiFi: ${progress}%\n`;
+                    }
+                };
+
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        logArea.style.color = "var(--success-color)";
+                        logArea.innerText += "\n✅ WiFi OTA concluído com sucesso! A placa irá reiniciar.\n";
+                    } else {
+                        logArea.style.color = "var(--error-color)";
+                        logArea.innerText += `\n❌ Erro na placa: HTTP ${xhr.status} - ${xhr.responseText}\n`;
+                    }
+                };
+
+                xhr.onerror = function() {
+                    logArea.style.color = "var(--error-color)";
+                    logArea.innerText += "\n❌ Erro de rede. A placa está ligada? Estão na mesma rede WiFi? (Verifique se o IP está correto).\n";
+                };
+
+                xhr.send(formData);
+
+            } catch (error) {
+                logArea.style.color = "var(--error-color)";
+                logArea.innerText += `\n❌ Erro: ${error.message}`;
+            }
+        }
+
+	// ==========================================
+        // UPLOAD VIA BLUETOOTH (BLE OTA)
+        // ==========================================
+        async function uploadBLE() {
+            const binUrl = document.getElementById('botoes-upload').getAttribute('data-bin-url');
+            const logArea = document.getElementById('compile-log');
+            if (!binUrl) return;
+
+            // UUIDs que o nosso código C++ na placa estará escutando
+            const OTA_SERVICE_UUID = "8d53dc1d-1db7-4cd3-868b-8a527460aa84";
+            const OTA_DATA_CHAR_UUID = "8d53dc1d-1db7-4cd3-868b-8a527460aa85";
+
+            logArea.style.color = "#ccc";
+            logArea.innerText += "Preparando BLE OTA...\n";
+
+            try {
+                // 1. Baixa o binário recém-compilado do servidor
+                const response = await fetch(binUrl);
+                const arrayBuffer = await response.arrayBuffer();
+                const firmware = new Uint8Array(arrayBuffer);
+
+                // 2. Abre a janela nativa de Bluetooth do navegador
+                logArea.innerText += "Aguardando seleção na janela de Bluetooth (Procure por 'AIPES-OTA')...\n";
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ namePrefix: 'AIPES' }], // Filtra para mostrar só nossas placas
+                    optionalServices: [OTA_SERVICE_UUID]
+                });
+
+                logArea.innerText += `Conectando ao dispositivo ${device.name}...\n`;
+                
+                device.addEventListener('gattserverdisconnected', () => {
+                    logArea.innerText += "\n[BLE Desconectado]";
+                });
+
+                // 3. Conecta no Serviço e na Característica (Porta de entrada dos dados)
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService(OTA_SERVICE_UUID);
+                const characteristic = await service.getCharacteristic(OTA_DATA_CHAR_UUID);
+
+                logArea.innerText += `Iniciando envio de ${firmware.length} bytes via Bluetooth...\n`;
+                
+                // 4. O Coração do BLE: Fatiando o arquivo em pedaços de 512 bytes (MTU)
+                const CHUNK_SIZE = 512; 
+                let offset = 0;
+
+                while (offset < firmware.length) {
+                    const chunk = firmware.slice(offset, offset + CHUNK_SIZE);
+                    
+                    // Envia o pedaço e espera a placa confirmar que recebeu
+                    await characteristic.writeValue(chunk); 
+                    
+                    offset += chunk.length;
+                    const progress = Math.round((offset / firmware.length) * 100);
+                    
+                    // Atualiza a porcentagem na mesma linha para não poluir a tela
+                    logArea.innerText = logArea.innerText.replace(/Enviando OTA: \d+%\n?/, '');
+                    logArea.innerText += `Enviando OTA: ${progress}%\n`;
+                }
+
+                // Desconecta após o envio
+                await server.disconnect();
+
+                logArea.style.color = "var(--success-color)";
+                logArea.innerText += "\n✅ Upload BLE concluído! A placa vai processar e reiniciar sozinha.\n";
+
+            } catch (error) {
+                logArea.style.color = "var(--error-color)";
+                logArea.innerText += `\n❌ Erro no BLE: ${error.message}`;
+            }
+        }
+
+
+// ==========================================
+        // COMPARTILHAR E CARREGAR PROJETO
+        // ==========================================
+        async function shareProject(silent = false) {
+            const codigoAtual = editor.getValue(); 
+            const historicoAtual = document.getElementById('prompt-history').innerHTML;
+            
+            try {
+                const response = await fetch('api/salvar_projeto.php', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ codigo: codigoAtual, historico: historicoAtual, projeto_id: projetoIdAtual }) 
+                });
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    projetoIdAtual = data.id; // Salva o ID oficial globalmente
+                    
+                    const urlBase = window.location.origin + window.location.pathname;
+                    const urlCompartilhamento = `${urlBase}?id=${data.id}&lang=${currentLang}`;
+                    
+                    // Atualiza a URL do navegador
+                    window.history.pushState({}, '', urlCompartilhamento);
+                    
+                    // Se não for o modo silencioso (foi o usuário que clicou no botão)
+                    if (!silent) {
+                        await navigator.clipboard.writeText(urlCompartilhamento);
+                        alert(dict[currentLang]['share_success'] + urlCompartilhamento);
+                    }
+                    return true;
+                } else { 
+                    if (!silent) alert("Erro ao compartilhar: " + data.erro); 
+                    return false;
+                }
+            } catch (error) { 
+                console.error("Erro link:", error); 
+                return false;
+            }
+        }
+
+        // ==========================================
+        // COMPILAÇÃO
+        // ==========================================
+        async function compileCode() { 
+            switchTab('tab-compile');
+            
+            // CORREÇÃO MESTRA: Se o projeto ainda não tem ID, salva ele silenciosamente 
+            // no banco de dados PRIMEIRO para garantir que a compilação seja vinculada a ele!
+            if (!projetoIdAtual) {
+                document.getElementById('compile-log').innerText = currentLang === 'pt' ? "Criando ID do projeto..." : "Creating project ID...";
+                await shareProject(true);
+            }
+
+            const tipoOta = document.getElementById('ota-mode').value; 
+            document.getElementById('btn-compilar').innerText = dict[currentLang]['status_sending'];
+            document.getElementById('compile-log').innerText = "Compilando...";
+            document.getElementById('botoes-upload').style.display = 'none';
+            const placaSelecionada = document.getElementById('board-select').value;
+
+            try {
+                const res = await fetch('api/compilar.php', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ codigo: editor.getValue(), projeto_id: projetoIdAtual, tipo_ota: tipoOta, placa: placaSelecionada }) 
+                });
+                const data = await res.json();
+                
+                if (data.sucesso) {
+                    // Cuidado: Removemos a linha que destruía o projetoIdAtual aqui.
+                    if(loopVerificacao) clearInterval(loopVerificacao);
+                    loopVerificacao = setInterval(() => checkCompilationStatus(data.job_id), 3000);
+                }
+            } catch (e) {
+                console.error("Erro ao enviar compilação:", e);
+            }
+        }
+
+        // ==========================================
+        // CARREGAR PROJETO AO ABRIR A PÁGINA
+        // ==========================================
+	// ==========================================
+        // VERIFICAR SE O PROJETO JÁ ESTÁ COMPILADO
+        // ==========================================
+        async function verificarCompilacaoPrevia(jobId) {
+            try {
+                const res = await fetch(`api/status.php?job_id=${jobId}`);
+                const data = await res.json();
+                
+                // Se a API retornar que já existe um binário pronto com sucesso
+                if (data.sucesso && data.dados.status === 'sucesso') {
+                    const logArea = document.getElementById('compile-log');
+                    logArea.style.color = "var(--success-color)";
+                    
+                    // Mostra o log original salvo e avisa que já está pronto
+                    const msgPronto = currentLang === 'pt' ? "\n\n✅ PROJETO JÁ COMPILADO! Pronto para upload." : "\n\n✅ PROJECT ALREADY COMPILED! Ready for upload.";
+                    logArea.innerText = data.dados.log_compilacao + msgPronto;
+
+                    // Salva a "Trindade" no HTML e exibe os botões de upload instantaneamente
+                    const btnBox = document.getElementById('botoes-upload');
+                    btnBox.setAttribute('data-bin-url', data.dados.caminho_binario);
+                    btnBox.setAttribute('data-boot-url', data.dados.caminho_bootloader);
+                    btnBox.setAttribute('data-part-url', data.dados.caminho_particoes);
+                    btnBox.setAttribute('data-boot-offset', data.dados.offset_bootloader);
+                    btnBox.style.display = 'flex';
+
+		    //Rola o log automaticamente para o final para ver a mensagem verde
+                    logArea.scrollTop = logArea.scrollHeight;
+
+                } else {
+                    // Se não estiver compilado, volta a mensagem padrão
+                    document.getElementById('compile-log').innerText = dict[currentLang]['log_waiting'];
+                }
+            } catch (e) {
+                console.error("Erro ao verificar compilação prévia:", e);
+                document.getElementById('compile-log').innerText = dict[currentLang]['log_waiting'];
+            }
+        }
+
+        // ==========================================
+        // CARREGAR PROJETO AO ABRIR A PÁGINA
+        // ==========================================
+        window.onload = async function() {
+            // Pega o parâmetro ?id= da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const idNaUrl = urlParams.get('id');
+            
+            if (idNaUrl) {
+                projetoIdAtual = idNaUrl;
+                try {
+                    const response = await fetch(`api/carregar_projeto.php?id=${idNaUrl}`);
+                    const data = await response.json();
+                    
+                    if (data.sucesso) {
+                        // Preenche o código e o histórico
+                        editor.setValue(data.dados.codigo);
+                        
+                        if (data.dados.historico_chat) {
+                            document.getElementById('prompt-history').innerHTML = data.dados.historico_chat;
+                        }
+                        
+                        // Faz um scroll no chat para a última mensagem
+                        const historyDiv = document.getElementById('prompt-history');
+                        historyDiv.scrollTop = historyDiv.scrollHeight;
+
+                        // NOVO: Verifica silenciosamente se já podemos exibir os botões de upload
+                        document.getElementById('compile-log').innerText = (currentLang === 'pt' ? "Verificando versão compilada no servidor..." : "Checking compiled version on server...");
+                        await verificarCompilacaoPrevia(idNaUrl);
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar projeto compartilhado:", error);
+                }
+            }
+        };
+
+
+	// ==========================================
+        // INTEGRAÇÃO DA IA COM OS LOGS (AUTO-DEBUG)
+        // ==========================================
+        function askAIAboutCompileLog() {
+            const logText = document.getElementById('compile-log').innerText;
+            
+            // Verifica se tem texto suficiente e se não é apenas a mensagem de espera
+            if (logText.length < 30 || logText.includes(dict[currentLang]['log_waiting'])) {
+                alert(currentLang === 'pt' ? "Não há log suficiente para analisar." : "Not enough log to analyze.");
+                return;
+            }
+
+            // Pega os últimos 2500 caracteres (o final é onde os erros de compilação aparecem)
+            const snippet = logText.slice(-2500);
+            const promptInput = document.getElementById('user-prompt');
+            
+            const instrucao = currentLang === 'pt' ? 
+                "A compilação falhou. Por favor, analise as últimas linhas deste log de erro e corrija o código para mim:\n\n" : 
+                "Compilation failed. Please analyze the last lines of this error log and fix the code for me:\n\n";
+                
+            // Preenche o campo e envia automaticamente
+            promptInput.value = instrucao + snippet;
+            sendToGemini();
+        }
+
+	function askAIAboutSerial() {
+            const serialText = document.getElementById('serial-output').innerText;
+            
+            // Remove as mensagens padrão da checagem para ver se realmente há dados da placa
+            const cleanText = serialText.replace("Aguardando conexão...", "").replace("Waiting for connection...", "").trim();
+            
+            // Se tirar a mensagem padrão sobrar menos de 5 letras, é porque a placa não enviou nada útil
+            if (cleanText.length < 5) {
+                alert(currentLang === 'pt' ? "O monitor serial está vazio ou sem dados suficientes." : "Serial monitor is empty or lacks data.");
+                return;
+            }
+
+            // Pega os últimos 2500 caracteres (foca no final, onde os travamentos/erros costumam aparecer)
+            const snippet = serialText.slice(-2500);
+            const promptInput = document.getElementById('user-prompt');
+            
+            const instrucao = currentLang === 'pt' ? 
+                "Analise as últimas linhas do monitor serial abaixo. Explique o que está acontecendo, se há algum erro ou travamento, e sugira como corrigir o código se necessário:\n\n" : 
+                "Analyze the last lines of the serial monitor below. Explain what is happening, if there is an error or crash, and suggest how to fix the code if necessary:\n\n";
+                
+            // Preenche o campo e envia automaticamente
+            promptInput.value = instrucao + snippet;
+            sendToGemini();
+        }
+
+// ==========================================
+        // SERIAL PLOTTER (CANVAS NATIVO HTML5)
+        // ==========================================
+        let plotterData = []; // Guarda as séries de dados
+        const maxPlotPoints = 100; // Quantos pontos mostrar na tela
+        const plotColors = ['#00FF00', '#FF3366', '#33CCFF', '#FFFF33', '#FF9933'];
+        let serialLineBuffer = ""; // Acumula o texto até formar uma linha completa
+
+        function clearPlotter() {
+            plotterData = [];
+            drawPlotter();
+        }
+
+        // Esta função lê o texto bruto e tenta extrair números
+        function processPlotterData(textChunk) {
+            serialLineBuffer += textChunk;
+            let lines = serialLineBuffer.split('\n');
+            
+            // A última linha pode estar cortada no meio, então guardamos para o próximo ciclo
+            serialLineBuffer = lines.pop();
+
+            let newDataArrived = false;
+
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+
+                // Separa a linha por vírgulas, tabulações ou espaços (padrão Arduino)
+                let parts = line.split(/[\s,]+/);
+                let nums = [];
+                
+                for (let p of parts) {
+                    let val = parseFloat(p);
+                    if (!isNaN(val)) nums.push(val);
+                }
+
+                // Se achou números, adiciona nas linhas do gráfico
+                if (nums.length > 0) {
+                    while (plotterData.length < nums.length) {
+                        plotterData.push([]); // Cria uma nova linha/cor se a placa enviar mais variáveis
+                    }
+                    for (let i = 0; i < nums.length; i++) {
+                        plotterData[i].push(nums[i]);
+                        if (plotterData[i].length > maxPlotPoints) {
+                            plotterData[i].shift(); // Remove o ponto mais antigo para o gráfico andar
+                        }
+                    }
+                    newDataArrived = true;
+                }
+            }
+
+            if (newDataArrived) {
+                requestAnimationFrame(drawPlotter); // Manda desenhar na tela de forma ultra suave
+            }
+        }
+
+        function drawPlotter() {
+            const canvas = document.getElementById('plotter-canvas');
+            if (!canvas || canvas.offsetParent === null) return; // Não gasta processamento se a aba estiver invisível
+
+            // Faz o canvas ficar com a resolução exata da tela (Responsivo)
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Limpa o fundo
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, width, height);
+
+            if (plotterData.length === 0 || plotterData[0].length === 0) return;
+
+            // Calcula Escala Dinâmica (Mínimo e Máximo Globais)
+            let min = Infinity;
+            let max = -Infinity;
+            for (let i = 0; i < plotterData.length; i++) {
+                for (let j = 0; j < plotterData[i].length; j++) {
+                    let val = plotterData[i][j];
+                    if (val < min) min = val;
+                    if (val > max) max = val;
+                }
+            }
+
+            // Evita divisão por zero e dá um respiro (padding) em cima e embaixo
+            if (max === min) { max += 10; min -= 10; } 
+            else { let padding = (max - min) * 0.1; max += padding; min -= padding; }
+
+            // Desenha as Linhas Coloridas
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            for (let i = 0; i < plotterData.length; i++) {
+                ctx.strokeStyle = plotColors[i % plotColors.length];
+                ctx.beginPath();
+                for (let j = 0; j < plotterData[i].length; j++) {
+                    let x = (j / (maxPlotPoints - 1)) * width;
+                    let y = height - ((plotterData[i][j] - min) / (max - min)) * height;
+                    if (j === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+
+            // Escreve os valores de escala na tela
+            ctx.fillStyle = '#888';
+            ctx.font = '12px sans-serif';
+            ctx.fillText(max.toFixed(2), 5, 15);
+            ctx.fillText(min.toFixed(2), 5, height - 5);
+        }
+
+    </script>
+</body>
+</html>

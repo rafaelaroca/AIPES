@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIPES PWA - Docs</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #cccccc;
+            --accent-color: #e91e63;
+            --accent-hover: #c2185b;
+            --panel-bg: #2d2d2d;
+            --border-color: #444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Lógica de ocultação de idiomas via CSS */
+        body.is-pt .lang-en { display: none !important; }
+        body.is-en .lang-pt { display: none !important; }
+
+        header {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 40px 20px 20px 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent-hover);
+            position: relative;
+        }
+
+        .lang-toggle {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background-color: rgba(0,0,0,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .lang-toggle:hover {
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h2 {
+            color: white;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: var(--accent-color);
+            margin-top: 30px;
+        }
+
+        p, li {
+            font-size: 1.1rem;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        code {
+            background-color: #111;
+            color: #88d49e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            background-color: var(--panel-bg);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .btn-back:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .highlight-box {
+            border-left: 4px solid var(--accent-color);
+            background-color: rgba(233, 30, 99, 0.1);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            .lang-toggle {
+                position: static;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body class="is-pt">
+
+    <header>
+        <button class="lang-toggle" onclick="toggleLanguage()">🇧🇷 PT / 🇺🇸 EN</button>
+        <h1>AIPES PWA</h1>
+        <p class="lang-pt">Plataforma de IA para Web Apps Responsivos</p>
+        <p class="lang-en">AI Platform for Responsive Web Apps</p>
+    </header>
+
+    <div class="container">
+
+        <div class="card">
+            <h2 class="lang-pt" style="margin-top: 0;">O que é o AIPES PWA?</h2>
+            <h2 class="lang-en" style="margin-top: 0;">What is AIPES PWA?</h2>
+
+            <p class="lang-pt">O <b>AIPES PWA</b> é um ambiente de desenvolvimento assistido por Inteligência Artificial focado na criação rápida de aplicações web responsivas (Progressive Web Apps). Diferente de IDEs tradicionais, o AIPES permite que você crie lógicas complexas, designs modernos e integrações usando linguagem natural (texto ou voz).</p>
+            <p class="lang-en"><b>AIPES PWA</b> is an Artificial Intelligence-assisted development environment focused on the rapid creation of responsive web applications (Progressive Web Apps). Unlike traditional IDEs, AIPES allows you to create complex logic, modern designs, and integrations using natural language (text or voice).</p>
+
+            <p class="lang-pt">O sistema gera, em tempo real, um arquivo único contendo HTML, CSS e JavaScript, apresentando o resultado instantaneamente em um simulador de dispositivo móvel.</p>
+            <p class="lang-en">The system generates, in real-time, a single file containing HTML, CSS, and JavaScript, displaying the result instantly in a mobile device simulator.</p>
+        </div>
+
+        <h2 class="lang-pt">Como Funciona?</h2>
+        <h2 class="lang-en">How Does It Work?</h2>
+
+        <p class="lang-pt">A arquitetura do AIPES PWA foi desenhada para eliminar o atrito entre a ideia e o protótipo funcional:</p>
+        <p class="lang-en">The AIPES PWA architecture was designed to eliminate the friction between the idea and the functional prototype:</p>
+
+        <ul>
+            <li class="lang-pt"><b>1. Entrada (Prompt):</b> Você descreve o que deseja criar. Pode ser desde "Crie um botão vermelho" até "Crie um painel IoT para monitorar sensores com gráficos dinâmicos".</li>
+            <li class="lang-en"><b>1. Input (Prompt):</b> You describe what you want to create. It can be anything from "Create a red button" to "Create an IoT dashboard to monitor sensors with dynamic charts".</li>
+
+            <li class="lang-pt"><b>2. Processamento (Gemini API):</b> O motor do AIPES envia o seu pedido junto com o código atual da tela para o Google Gemini. A IA atua como um Desenvolvedor Front-end Sênior, ajustando apenas o necessário.</li>
+            <li class="lang-en"><b>2. Processing (Gemini API):</b> The AIPES engine sends your request along with the current screen code to Google Gemini. The AI acts as a Senior Front-end Developer, adjusting only what is necessary.</li>
+
+            <li class="lang-pt"><b>3. Live Preview:</b> O código retornado (um arquivo monolítico contendo <code>&lt;style&gt;</code> e <code>&lt;script&gt;</code>) é injetado automaticamente no simulador lateral, recarregando o aplicativo instantaneamente.</li>
+            <li class="lang-en"><b>3. Live Preview:</b> The returned code (a monolithic file containing <code>&lt;style&gt;</code> and <code>&lt;script&gt;</code>) is automatically injected into the side simulator, instantly reloading the application.</li>
+
+            <li class="lang-pt"><b>4. Publicação em 1 Clique:</b> Ao compartilhar, o código é salvo no banco de dados para edição futura e um arquivo HTML estático é gerado no servidor, criando um link público permanente para o seu App.</li>
+            <li class="lang-en"><b>4. 1-Click Publishing:</b> Upon sharing, the code is saved to the database for future editing, and a static HTML file is generated on the server, creating a permanent public link to your App.</li>
+        </ul>
+
+        <h2 class="lang-pt">Principais Recursos</h2>
+        <h2 class="lang-en">Key Features</h2>
+
+        <div class="card">
+            <h3 class="lang-pt" style="margin-top: 0;">🎤 Comando de Voz Integrado</h3>
+            <h3 class="lang-en" style="margin-top: 0;">🎤 Integrated Voice Command</h3>
+
+            <p class="lang-pt">Utilizando a <i>Web Speech API</i> nativa dos navegadores, você pode ditar a estrutura do seu aplicativo. Basta clicar em "Falar" e descrever as mudanças estruturais ou de design que a IA deve aplicar no código.</p>
+            <p class="lang-en">Using the browsers' native <i>Web Speech API</i>, you can dictate the structure of your application. Just click "Speak" and describe the structural or design changes the AI should apply to the code.</p>
+        </div>
+
+        <div class="card">
+            <h3 class="lang-pt" style="margin-top: 0;">📱 Simulador Mobile First</h3>
+            <h3 class="lang-en" style="margin-top: 0;">📱 Mobile First Simulator</h3>
+
+            <p class="lang-pt">O painel direito apresenta um <i>mockup</i> de smartphone. O código gerado pela IA sempre inclui a tag <code>viewport</code> restrita, forçando o comportamento de aplicativo nativo, garantindo que o design seja responsivo e amigável para toques (touch-friendly).</p>
+            <p class="lang-en">The right panel features a smartphone <i>mockup</i>. The code generated by the AI always includes the restricted <code>viewport</code> tag, forcing native app behavior and ensuring the design is responsive and touch-friendly.</p>
+        </div>
+
+        <div class="card">
+            <h3 class="lang-pt" style="margin-top: 0;">🔗 Publicação Imediata</h3>
+            <h3 class="lang-en" style="margin-top: 0;">🔗 Immediate Publishing</h3>
+
+            <p class="lang-pt">Ao clicar em "Compartilhar", o AIPES não apenas salva seu progresso, mas também faz o <i>deploy</i> da aplicação. Você recebe dois links:</p>
+            <p class="lang-en">By clicking "Share", AIPES not only saves your progress but also <i>deploys</i> the application. You receive two links:</p>
+
+            <ul>
+                <li class="lang-pt"><b>Link de Edição:</b> Para abrir o ambiente do AIPES PWA com todo o chat e código carregados.</li>
+                <li class="lang-en"><b>Edit Link:</b> To open the AIPES PWA environment with all the chat history and code loaded.</li>
+
+                <li class="lang-pt"><b>Link do App:</b> Uma URL direta para o arquivo <code>.html</code> gerado, que pode ser aberto em tela cheia no celular ou enviado para clientes e usuários testarem.</li>
+                <li class="lang-en"><b>App Link:</b> A direct URL to the generated <code>.html</code> file, which can be opened in full screen on a mobile phone or sent to clients and users for testing.</li>
+            </ul>
+        </div>
+
+        <h2 class="lang-pt">Casos de Uso Ideais</h2>
+        <h2 class="lang-en">Ideal Use Cases</h2>
+
+        <p class="lang-pt">O AIPES PWA brilha na construção rápida de interfaces e ferramentas leves:</p>
+        <p class="lang-en">AIPES PWA shines in the rapid construction of interfaces and lightweight tools:</p>
+
+        <ul>
+            <li class="lang-pt"><b>Prototipagem Rápida:</b> Validar ideias de interfaces, fluxos de botões e formulários antes de passar para o framework definitivo da sua equipe.</li>
+            <li class="lang-en"><b>Rapid Prototyping:</b> Validate interface ideas, button flows, and forms before moving to your team's definitive framework.</li>
+
+            <li class="lang-pt"><b>Dashboards IoT:</b> Criar painéis de controle em HTML/JS que se comunicam via requisições HTTP ou WebSockets com microcontroladores (como a linha ESP32).</li>
+            <li class="lang-en"><b>IoT Dashboards:</b> Create HTML/JS control panels that communicate via HTTP requests or WebSockets with microcontrollers (such as the ESP32 line).</li>
+
+            <li class="lang-pt"><b>Ferramentas de Cálculo:</b> Calculadoras de orçamento, conversores de unidades ou simuladores matemáticos de página única.</li>
+            <li class="lang-en"><b>Calculation Tools:</b> Budget calculators, unit converters, or single-page mathematical simulators.</li>
+
+            <li class="lang-pt"><b>Aplicações de Captura de Dados:</b> Formulários dinâmicos para coleta de dados em campo usando o celular.</li>
+            <li class="lang-en"><b>Data Capture Applications:</b> Dynamic forms for field data collection using a smartphone.</li>
+        </ul>
+
+        <div class="highlight-box">
+            <b class="lang-pt">Dica de Produtividade:</b> <span class="lang-pt">Você não precisa pedir o código inteiro de novo a cada mudança. O AIPES envia o código atualizado para a IA. Se o aplicativo já estiver pronto e você quiser apenas mudar a cor do fundo, digite apenas: <i>"Mude o fundo para azul escuro"</i>.</span>
+
+            <b class="lang-en">Productivity Tip:</b> <span class="lang-en">You don't need to request the entire code again for every change. AIPES sends the updated code to the AI. If the application is already finished and you just want to change the background color, simply type: <i>"Change the background to dark blue"</i>.</span>
+        </div>
+
+        <a href="index.html" class="btn-back lang-pt">⬅️ Voltar para o Editor</a>
+        <a href="index.html" class="btn-back lang-en">⬅️ Back to Editor</a>
+
+    </div>
+
+    <script>
+        let currentLang = 'pt'; // Idioma padrão
+
+        // Função para ler o idioma da URL ao carregar a página
+        function getLanguageFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const langParam = urlParams.get('lang');
+
+            if (langParam === 'pt' || langParam === 'en') {
+                return langParam;
+            }
+
+            // Se não tiver na URL, verifica o idioma do navegador
+            const browserLang = navigator.language || navigator.userLanguage;
+            return browserLang.toLowerCase().startsWith('pt') ? 'pt' : 'en';
+        }
+
+        // Função para aplicar o idioma no body e atualizar links
+        function applyLanguage(lang) {
+            currentLang = lang;
+            document.body.className = 'is-' + lang;
+            document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+
+            // Atualiza os botões de voltar para manter o idioma no editor principal
+            document.querySelectorAll('.btn-back').forEach(btn => {
+                const url = new URL(btn.href, window.location.origin);
+                url.searchParams.set('lang', lang);
+                btn.href = url.toString();
+            });
+
+            // Atualiza a URL atual silenciosamente para manter a referência
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('lang', lang);
+            window.history.replaceState({}, '', currentUrl);
+        }
+
+        // Função do botão de toggle
+        function toggleLanguage() {
+            const newLang = currentLang === 'pt' ? 'en' : 'pt';
+            applyLanguage(newLang);
+        }
+
+        // Inicialização quando a página carrega
+        window.onload = () => {
+            const initialLang = getLanguageFromURL();
+            applyLanguage(initialLang);
+        };
+    </script>
+</body>
+</html>

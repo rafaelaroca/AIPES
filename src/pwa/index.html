@@ -1,0 +1,472 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIPES PWA - AI Platform for Web Apps</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
+
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --panel-bg: #2d2d2d;
+            --text-color: #cccccc;
+            --accent-color: #e91e63; /* Cor alterada para dar uma identidade mais "Web/Design" */
+            --success-color: #4CAF50;
+            --error-color: #f44336;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        header { background-color: var(--accent-color); color: white; padding: 15px 20px; font-size: 1.2rem; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .subtitle { font-size: 0.9rem; font-weight: normal; opacity: 0.9; }
+
+        .lang-toggle { background-color: rgba(0,0,0,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 5px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; flex: none; }
+        .lang-toggle:hover { background-color: rgba(0,0,0,0.4); }
+
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+
+        /* Painel Esquerdo (Chat) */
+        .left-panel { width: 25%; display: flex; flex-direction: column; border-right: 1px solid #444; background-color: var(--panel-bg); }
+        #prompt-history { flex: 1; padding: 20px; overflow-y: auto; border-bottom: 1px solid #444; }
+        .msg-user { margin-bottom: 15px; color: #fff; }
+        .msg-sys { margin-bottom: 15px; color: #ffb6c1; font-style: italic; }
+        .input-area { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        textarea#user-prompt { width: 100%; height: 80px; background-color: #1e1e1e; color: white; border: 1px solid #555; padding: 10px; border-radius: 4px; resize: none; box-sizing: border-box; }
+        .button-group { display: flex; gap: 10px; }
+        button { background-color: var(--accent-color); color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; transition: background 0.3s; }
+        button:hover { background-color: #c2185b; }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+
+        /* Painel Central (Editor) */
+        .middle-panel { width: 45%; display: flex; flex-direction: column; border-right: 1px solid #444; }
+        .editor-header { padding: 10px 20px; background-color: #333; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center; }
+        .editor-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; background-color: #272822; }
+        .CodeMirror { flex: 1; height: 100%; font-family: 'Courier New', Courier, monospace; font-size: 15px; }
+
+        /* Painel Direito (Preview Mobile) */
+        .right-panel { width: 30%; background-color: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .preview-header { position: absolute; top: 0; width: 100%; padding: 10px 20px; background-color: #333; border-bottom: 1px solid #444; text-align: center; box-sizing: border-box; font-weight: bold;}
+
+        .mobile-mockup {
+            width: 360px; /* Largura típica de celular */
+            height: 640px; /* Altura típica de celular */
+            background-color: #fff;
+            border: 14px solid #222;
+            border-radius: 36px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin-top: 40px;
+        }
+
+        /* Detalhe da câmera superior do celular (Notch) */
+        .mobile-mockup::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 25px;
+            background-color: #222;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            z-index: 10;
+        }
+
+        #preview-frame { flex: 1; width: 100%; height: 100%; border: none; background: #fff; }
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <div>AIPES PWA</div>
+            <div class="subtitle" data-i18n="subtitle">Artificial Intelligence Platform for Web Apps</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <a href="docs.html" target="_blank" style="background: #333; color: white; border: 1px solid #555; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-size: 0.9em; display: flex; align-items: center;">
+                📚 <span data-i18n="btn_docs" style="margin-left: 5px;">Docs / Manual</span>
+            </a>
+            <button class="lang-toggle" onclick="window.location.href='https://aipes.com.br/pwa/'" data-i18n="btn_new">📄 Novo PWA</button>
+            <button class="lang-toggle" onclick="shareProject()" style="background-color: #28a745; border-color: #28a745;" data-i18n="btn_share">🔗 Compartilhar</button>
+            <button class="lang-toggle" onclick="toggleLanguage()">🇧🇷 PT / 🇺🇸 EN</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <div id="prompt-history">
+                <div class="msg-sys" data-i18n="msg_sys_hello">Olá! Qual App responsivo você deseja criar hoje?</div>
+            </div>
+            <div class="input-area">
+                <textarea id="user-prompt" placeholder="Descreva o layout e a lógica do seu app..."></textarea>
+                <div class="button-group">
+                    <button id="btn-falar" onclick="startSpeech()" style="flex: 0.5;" data-i18n="btn_falar">🎤 Falar</button>
+                    <button id="btn-gerar" onclick="sendToGemini()" data-i18n="btn_gerar">✨ Gerar / Ajustar PWA</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="middle-panel">
+            <div class="editor-header">
+                <span data-i18n="editor_title">Código Único (HTML/JS/CSS)</span>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button onclick="editor.undo()" style="background: transparent; border: 1px solid #555; color: #ccc; padding: 5px 10px; border-radius: 4px; cursor: pointer; flex: none;" data-i18n="btn_undo" title="Desfazer (Ctrl+Z)">↩️ Desfazer</button>
+                    <button onclick="editor.redo()" style="background: transparent; border: 1px solid #555; color: #ccc; padding: 5px 10px; border-radius: 4px; cursor: pointer; flex: none;" data-i18n="btn_redo" title="Refazer (Ctrl+Y)">↪️ Refazer</button>
+                </div>
+            </div>
+            <div class="editor-wrapper">
+                <textarea id="editor-container" spellcheck="false"><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Meu PWA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>App Started!</h2>
+        <p>Waiting for IA Instructions...</p>
+        <button onclick="alert('It works!')">Click to test</button>
+    </div>
+</body>
+</html></textarea>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="preview-header" data-i18n="preview_title">Live Preview (Mobile View)</div>
+            <div class="mobile-mockup">
+                <iframe id="preview-frame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+
+    <script>
+        // ==========================================
+        // SISTEMA DE TRADUÇÃO (i18n)
+        // ==========================================
+        const dict = {
+            pt: {
+                subtitle: "Plataforma de IA para Web Apps Responsivos",
+                btn_falar: "🎤 Falar",
+                btn_gerar: "✨ Gerar / Ajustar PWA",
+                editor_title: "Código Único (HTML/JS/CSS)",
+                preview_title: "Live Preview (Visualização Mobile)",
+                placeholder: "Descreva o layout e a lógica do seu app...",
+                msg_sys_hello: "Olá! Qual App responsivo você deseja criar hoje?",
+                status_thinking: "⏳ Pensando e Codificando...",
+                btn_share: "🔗 Compartilhar",
+                share_success: "Link copiado para a área de transferência:\n",
+                btn_new: "📄 Novo PWA",
+                btn_undo: "↩️ Desfazer",
+                btn_redo: "↪️ Refazer",
+                btn_docs: "Docs"
+            },
+            en: {
+                subtitle: "AI Platform for Responsive Web Apps",
+                btn_falar: "🎤 Speak",
+                btn_gerar: "✨ Generate / Adjust PWA",
+                editor_title: "Single File Code (HTML/JS/CSS)",
+                preview_title: "Live Preview (Mobile View)",
+                placeholder: "Describe the layout and logic of your app...",
+                msg_sys_hello: "Hello! What responsive App do you want to create today?",
+                status_thinking: "⏳ Thinking and Coding...",
+                btn_share: "🔗 Share",
+                share_success: "Link copied to clipboard:\n",
+                btn_new: "📄 New PWA",
+                btn_undo: "↩️ Undo",
+                btn_redo: "↪️ Redo",
+                btn_docs: "Docs"
+            }
+        };
+
+        const urlParamsGlobal = new URLSearchParams(window.location.search);
+        let currentLang = urlParamsGlobal.get('lang');
+
+        if (currentLang !== 'pt' && currentLang !== 'en') {
+            const browserLang = navigator.language || navigator.userLanguage;
+            currentLang = browserLang.toLowerCase().startsWith('pt') ? 'pt' : 'en';
+            const urlAtual = new URL(window.location.href);
+            urlAtual.searchParams.set('lang', currentLang);
+            window.history.replaceState({}, '', urlAtual);
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'pt' ? 'en' : 'pt';
+            applyTranslations();
+            const urlAtual = new URL(window.location.href);
+            urlAtual.searchParams.set('lang', currentLang);
+            window.history.replaceState({}, '', urlAtual);
+        }
+
+        function applyTranslations() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(dict[currentLang][key]) el.innerText = dict[currentLang][key];
+            });
+            document.getElementById('user-prompt').placeholder = dict[currentLang]['placeholder'];
+        }
+
+        // ==========================================
+        // CODEMIRROR & LIVE PREVIEW
+        // ==========================================
+        const editor = CodeMirror.fromTextArea(document.getElementById("editor-container"), {
+            lineNumbers: true,
+            mode: "htmlmixed", // Modo alterado para HTML completo com JS/CSS embutidos
+            theme: "monokai",
+            indentUnit: 4,
+            tabSize: 4
+        });
+
+        applyTranslations();
+
+        // Atualiza o iframe do PWA
+        function updatePreview() {
+            const code = editor.getValue();
+            const iframe = document.getElementById('preview-frame');
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+            doc.open();
+            doc.write(code);
+            doc.close();
+        }
+
+        // Auto-refresh inteligente: espera o usuário parar de digitar por 700ms antes de atualizar o iframe
+        let debounceTimer;
+        editor.on('change', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updatePreview, 700);
+        });
+
+        setTimeout(() => {
+            editor.refresh();
+            updatePreview(); // Carrega a visualização inicial
+        }, 100);
+
+
+        let projetoIdAtual = null;
+
+        // ==========================================
+        // RECONHECIMENTO DE VOZ (Web Speech API)
+        // ==========================================
+        function startSpeech() {
+            const promptInput = document.getElementById('user-prompt');
+            const btnFalar = document.getElementById('btn-falar');
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert(currentLang === 'pt' ? "Navegador não suporta reconhecimento de voz." : "Browser doesn't support speech recognition.");
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = currentLang === 'pt' ? 'pt-BR' : 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = function() {
+                btnFalar.style.backgroundColor = "#dc3545";
+                btnFalar.innerText = currentLang === 'pt' ? "🎙️ Ouvindo..." : "🎙️ Listening...";
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                if (promptInput.value.length > 0 && !promptInput.value.endsWith(" ")) {
+                    promptInput.value += " " + transcript;
+                } else {
+                    promptInput.value += transcript;
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error("Erro no microfone: ", event.error);
+            };
+
+            recognition.onend = function() {
+                btnFalar.style.backgroundColor = "";
+                btnFalar.innerText = dict[currentLang]['btn_falar'];
+            };
+
+            recognition.start();
+        }
+
+        // ==========================================
+        // INTEGRAÇÃO COM GEMINI
+        // ==========================================
+        async function sendToGemini() {
+            const promptTexto = document.getElementById('user-prompt').value.trim();
+            const historyDiv = document.getElementById('prompt-history');
+            const btnGerar = document.getElementById('btn-gerar');
+
+            if(!promptTexto) return;
+
+            historyDiv.innerHTML += `<div class="msg-user"><b>${currentLang === 'pt' ? 'Você' : 'You'}:</b> ${promptTexto}</div>`;
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+
+            btnGerar.disabled = true;
+            btnGerar.innerText = dict[currentLang]['status_thinking'];
+
+            try {
+                // ATENÇÃO: O payload agora foca apenas em gerar HTML/JS.
+                // Você precisará atualizar seu 'api/gemini.php' para instruir o Gemini a responder com HTML puro.
+                const res = await fetch('api/gemini.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: promptTexto, codigo_atual: editor.getValue() })
+                });
+
+                const textResponse = await res.text();
+
+                try {
+                    const data = JSON.parse(textResponse);
+
+                    if(data.sucesso) {
+                        editor.setValue(data.codigo);
+                        document.getElementById('user-prompt').value = '';
+                        updatePreview(); // Força update do iframe imediato pós-IA
+
+                        const icone = '🤖 <b>AIPES:</b>';
+                        historyDiv.innerHTML += `
+                            <div class="msg-sys" style="color: #ccc; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border-left: 3px solid var(--accent-color);">
+                                ${icone}<br><br>${data.explicacao}
+                            </div>`;
+                    } else {
+                        historyDiv.innerHTML += `<div class="msg-sys" style="color: var(--error-color);">❌ Erro: ${data.erro}</div>`;
+                    }
+                } catch (jsonError) {
+                    console.error("Resposta inválida do PHP:", textResponse);
+                    historyDiv.innerHTML += `<div class="msg-sys" style="color: var(--error-color);">❌ Erro PHP (Veja o console).</div>`;
+                }
+
+            } catch (e) {
+                historyDiv.innerHTML += `<div class="msg-sys" style="color: var(--error-color);">❌ Falha de Rede: ${e.message}</div>`;
+            }
+
+            btnGerar.disabled = false;
+            btnGerar.innerText = dict[currentLang]['btn_gerar'];
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+        }
+
+        // ==========================================
+        // COMPARTILHAR E CARREGAR PROJETO
+        // ==========================================
+	async function shareProject(silent = false) {
+	    const codigoAtual = editor.getValue(); 
+	    const historicoAtual = document.getElementById('prompt-history').innerHTML;
+	    
+	    try {
+		const response = await fetch('api/salvar_projeto.php', { 
+		    method: 'POST', 
+		    headers: { 'Content-Type': 'application/json' }, 
+		    body: JSON.stringify({ codigo: codigoAtual, historico: historicoAtual, projeto_id: projetoIdAtual }) 
+		});
+		const data = await response.json();
+		
+		if (data.sucesso) {
+		    projetoIdAtual = data.id;
+		    
+		    // Monta a URL do Editor (para continuar editando)
+		    const urlBase = window.location.origin + window.location.pathname;
+		    const urlCompartilhamentoEditor = `${urlBase}?id=${data.id}&lang=${currentLang}`;
+		    
+		    // Pega a URL do App Funcional Direto gerado pelo PHP
+		    const urlAppPublicado = data.url_app;
+		    
+		    window.history.pushState({}, '', urlCompartilhamentoEditor);
+		    
+		    if (!silent) {
+			// Monta uma mensagem com os dois links
+			const msg = currentLang === 'pt' ? 
+			    `✅ Projeto Salvo!\n\n🛠️ Link para EDITAR o projeto:\n${urlCompartilhamentoEditor}\n\n📱 Link do APP (Abra no celular):\n${urlAppPublicado}` : 
+			    `✅ Project Saved!\n\n🛠️ Link to EDIT project:\n${urlCompartilhamentoEditor}\n\n📱 APP Link (Open on mobile):\n${urlAppPublicado}`;
+			
+			// Copia o link do App Publicado para a área de transferência por conveniência
+			await navigator.clipboard.writeText(urlAppPublicado);
+			
+			alert(msg + (currentLang === 'pt' ? "\n\n(O link do APP foi copiado!)" : "\n\n(APP link copied!)"));
+		    }
+		    return true;
+		} else { 
+		    if (!silent) alert("Erro ao salvar: " + data.erro); 
+		    return false;
+		}
+	    } catch (error) { 
+		console.error("Erro link:", error); 
+		return false;
+	    }
+	}
+
+        // CARREGAR PROJETO AO ABRIR A PÁGINA
+        window.onload = async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idNaUrl = urlParams.get('id');
+
+            if (idNaUrl) {
+                projetoIdAtual = idNaUrl;
+                try {
+                    const response = await fetch(`api/carregar_projeto.php?id=${idNaUrl}`);
+                    const data = await response.json();
+
+                    if (data.sucesso) {
+                        editor.setValue(data.dados.codigo);
+                        if (data.dados.historico_chat) {
+                            document.getElementById('prompt-history').innerHTML = data.dados.historico_chat;
+                        }
+                        const historyDiv = document.getElementById('prompt-history');
+                        historyDiv.scrollTop = historyDiv.scrollHeight;
+
+                        updatePreview();
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar projeto compartilhado:", error);
+                }
+            }
+        };
+    </script>
+</body>
+</html>

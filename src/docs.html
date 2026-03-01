@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIPES - Documentação Oficial</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --panel-bg: #252526;
+            --text-color: #d4d4d4;
+            --primary-color: #007acc;
+            --accent-color: #4CAF50;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        h1, h2, h3 { color: #fff; }
+        h1 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; }
+        h2 { color: var(--primary-color); margin-top: 40px; }
+        a { color: #4daaf1; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        code {
+            background: #111;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ce9178;
+            font-family: monospace;
+        }
+        .lang-switch {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .lang-btn {
+            background: #333; color: white; border: 1px solid #555;
+            padding: 8px 16px; border-radius: 4px; cursor: pointer;
+            margin-left: 10px;
+        }
+        .lang-btn.active { background: var(--primary-color); border-color: var(--primary-color); }
+        .content-en { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #444; padding: 10px; text-align: left; }
+        th { background-color: #333; color: white; }
+        .img-container { text-align: center; margin: 20px 0; }
+        .img-container img { max-width: 100%; border-radius: 8px; border: 1px solid #444; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="switchLang('pt')">Português</button>
+        <button class="lang-btn" onclick="switchLang('en')">English</button>
+    </div>
+
+    <div id="content-pt" class="content-pt">
+        <h1>📚 Documentação AIPES & ESP32-C3</h1>
+
+        <div class="card">
+            <h2>Hardware: Conhecendo a ESP32-C3 Super Mini</h2>
+            <p>A <strong>ESP32-C3 Super Mini</strong> é uma placa de desenvolvimento ultracompacta baseada no processador de arquitetura RISC-V de 32 bits (single-core a 160MHz). Seu maior destaque é o tamanho reduzido e o baixíssimo consumo de energia (apenas 43µA em Deep Sleep), tornando-a ideal para projetos de IoT (Internet das Coisas).</p>
+
+            <h3>Especificações Técnicas Principais</h3>
+            <table>
+                <tr><th>Componente</th><th>Detalhe</th></tr>
+                <tr><td>Processador</td><td>ESP32-C3 (32-bit RISC-V, 160 MHz)</td></tr>
+                <tr><td>Conectividade</td><td>Wi-Fi 2.4 GHz (b/g/n) e Bluetooth 5.0 (LE)</td></tr>
+                <tr><td>Memória</td><td>400 KB SRAM / 4 MB Flash (QIO, 80MHz)</td></tr>
+                <tr><td>Interface USB</td><td>USB-C (Suporta USB CDC/WebSerial)</td></tr>
+                <tr><td>GPIOs</td><td>11 Pinos (Suporta PWM, ADC, I2C, SPI, UART)</td></tr>
+                <tr><td>LED Integrado</td><td>GPIO 8 (Lógica Invertida: LOW = Aceso)</td></tr>
+                <tr><td>Botão BOOT</td><td>GPIO 9</td></tr>
+            </table>
+
+            <h3>Modo Bootloader (Gravação Manual)</h3>
+            <p>Se a placa não for reconhecida ao tentar gravar via USB, você pode forçar o modo de gravação (Bootloader):</p>
+            <ol>
+                <li>Mantenha pressionado o botão <strong>BOOT</strong>.</li>
+                <li>Pressione e solte o botão <strong>RST</strong> (Reset).</li>
+                <li>Solte o botão <strong>BOOT</strong>.</li>
+            </ol>
+
+            <p><em>Referências e Fontes Externas:</em><br>
+            - <a href="https://randomnerdtutorials.com/getting-started-esp32-c3-super-mini/" target="_blank">Random Nerd Tutorials: Getting Started with ESP32-C3</a><br>
+            - <a href="https://www.sudo.is/docs/esphome/boards/esp32c3supermini/" target="_blank">Sudo.is / ESPHome: ESP32-C3 Docs</a></p>
+        </div>
+
+        <div class="card">
+            <h2>Manual da Plataforma AIPES</h2>
+            <p>O <strong>AIPES</strong> (AI-Powered ESP System) é uma IDE na nuvem revolucionária que une Inteligência Artificial e compilação remota, permitindo que você programe microcontroladores diretamente do seu navegador, sem precisar instalar nada no seu computador.</p>
+
+            <h3>1. Como pedir um código para a IA 🤖</h3>
+            <p>No painel esquerdo, você encontrará uma caixa de texto. Digite o que você quer que a placa faça em linguagem natural (ex: <em>"Crie um semáforo usando os pinos 2, 3 e 4"</em>). <br>
+            Você também pode clicar no botão <strong>🎤 Falar</strong>. O navegador pedirá permissão para usar o microfone e transcreverá sua voz automaticamente para a caixa de texto. Clique em "Gerar Código" e aguarde a IA escrever o programa em C++ e explicar o funcionamento.</p>
+
+            <h3>2. Possibilidade de Editar o Código ✍️</h3>
+            <p>No lado direito da tela, você tem um editor de código profissional (baseado no Monaco Editor, o mesmo do VSCode). Mesmo que a IA gere o código, você é totalmente livre para alterar variáveis, corrigir lógicas ou colar seus próprios códigos ali dentro antes de compilar.</p>
+
+            <h3>3. Como Compartilhar um Código 🔗</h3>
+            <p>Cada vez que um código é compilado ou gerado, o AIPES salva o projeto no banco de dados e adiciona um ID único na URL (ex: <code>?id=a1b2c3d4</code>). Para compartilhar o seu projeto com um amigo, basta copiar o link inteiro da barra de endereços do navegador e enviar. Quando ele abrir, o código estará exatamente igual na tela dele!</p>
+
+            <h3>4. Como Compilar o Código ⚙️</h3>
+            <p>Antes de gravar, você deve transformar o código de texto em linguagem de máquina (binário). Siga os passos:</p>
+            <ol>
+                <li>Selecione a sua <strong>Placa</strong> no menu suspenso (ESP32-C3 ou ESP32 Clássica).</li>
+                <li>Selecione o <strong>Modo de Gravação (OTA)</strong>.</li>
+                <li>Clique no botão azul <strong>⚙️ Compilar Código</strong>. O servidor fará o trabalho pesado usando o <code>arduino-cli</code> e retornará uma mensagem verde de sucesso.</li>
+            </ol>
+
+            <h3>5. Modos de Gravação (Upload) 🚀</h3>
+            <p>O AIPES suporta 4 formas incríveis de gravar o código na sua placa:</p>
+            <ul>
+                <li><strong>Apenas USB (WebSerial):</strong> Conecte a placa via cabo USB. Requer Google Chrome ou Edge. O sistema faz um <em>Full Flash</em> (Bootloader, Partições e App) direto pelo navegador. Ideal para o primeiro uso.</li>
+                <li><strong>WiFi OTA (Conectar a uma Rede):</strong> O código gerado pela IA vai conectar a sua placa ao roteador da sua casa. Ideal para atualizar placas espalhadas pela casa via Wi-Fi.</li>
+                <li><strong>WiFi OTA (Modo Access Point):</strong> A própria placa cria uma rede Wi-Fi (ex: "AIPES_OTA"). Você conecta o seu PC nessa rede e envia o código diretamente para ela, sem precisar de roteador!</li>
+                <li><strong>Bluetooth BLE OTA:</strong> Usa a tecnologia WebBluetooth do navegador. É mais lento, mas ideal para atualizar equipamentos no campo onde não há Wi-Fi disponível.</li>
+            </ul>
+            <p><em>⚠️ Dica importante para o modo WiFi:</em> Como a sua placa não possui certificado HTTPS, o Chrome pode bloquear o envio por motivos de segurança (Mixed Content). Clique no ícone de "Cadeado" ao lado da URL no navegador, vá em "Configurações do Site" e altere a permissão de <strong>Conteúdo Inseguro (Insecure content)</strong> para <strong>Permitir</strong>.</p>
+        </div>
+    </div>
+
+    <div id="content-en" class="content-en">
+        <h1>📚 AIPES & ESP32-C3 Documentation</h1>
+
+        <div class="card">
+            <h2>Hardware: Meet the ESP32-C3 Super Mini</h2>
+            <p>The <strong>ESP32-C3 Super Mini</strong> is an ultra-compact development board based on a 32-bit RISC-V processor (single-core at 160MHz). Its standout features are its tiny footprint and ultra-low power consumption (down to 43µA in Deep Sleep), making it perfect for IoT projects.</p>
+
+            <h3>Key Technical Specifications</h3>
+            <table>
+                <tr><th>Component</th><th>Detail</th></tr>
+                <tr><td>Processor</td><td>ESP32-C3 (32-bit RISC-V, 160 MHz)</td></tr>
+                <tr><td>Connectivity</td><td>Wi-Fi 2.4 GHz (b/g/n) & Bluetooth 5.0 (LE)</td></tr>
+                <tr><td>Memory</td><td>400 KB SRAM / 4 MB Flash (QIO, 80MHz)</td></tr>
+                <tr><td>USB Interface</td><td>USB-C (Supports USB CDC/WebSerial)</td></tr>
+                <tr><td>GPIOs</td><td>11 Pins (Supports PWM, ADC, I2C, SPI, UART)</td></tr>
+                <tr><td>Onboard LED</td><td>GPIO 8 (Inverted Logic: LOW = ON)</td></tr>
+                <tr><td>BOOT Button</td><td>GPIO 9</td></tr>
+            </table>
+
+            <h3>Bootloader Mode (Manual Flashing)</h3>
+            <p>If the board is not recognized when trying to flash via USB, you can force it into download mode (Bootloader):</p>
+            <ol>
+                <li>Hold down the <strong>BOOT</strong> button.</li>
+                <li>Press and release the <strong>RST</strong> (Reset) button.</li>
+                <li>Release the <strong>BOOT</strong> button.</li>
+            </ol>
+
+            <p><em>References & External Sources:</em><br>
+            - <a href="https://randomnerdtutorials.com/getting-started-esp32-c3-super-mini/" target="_blank">Random Nerd Tutorials: Getting Started with ESP32-C3</a><br>
+            - <a href="https://www.sudo.is/docs/esphome/boards/esp32c3supermini/" target="_blank">Sudo.is / ESPHome: ESP32-C3 Docs</a></p>
+        </div>
+
+        <div class="card">
+            <h2>AIPES Platform Manual</h2>
+            <p><strong>AIPES</strong> (AI-Powered ESP System) is a revolutionary cloud IDE that merges Artificial Intelligence and remote compilation. It allows you to program microcontrollers directly from your web browser without installing any local software.</p>
+
+            <h3>1. How to ask AI for code 🤖</h3>
+            <p>On the left panel, you'll find a text box. Describe what you want the board to do in natural language (e.g., <em>"Create a traffic light using pins 2, 3, and 4"</em>). <br>
+            You can also click the <strong>🎤 Falar (Speak)</strong> button. The browser will ask for microphone access and transcribe your voice into text automatically. Click "Generate Code" and wait for the AI to write the C++ program and explain how it works.</p>
+
+            <h3>2. Editing the Code ✍️</h3>
+            <p>On the right side of the screen is a professional code editor (powered by Monaco Editor, same as VSCode). Even though the AI generates the code, you are completely free to modify variables, fix logic, or paste your own code before compiling.</p>
+
+            <h3>3. How to Share Code 🔗</h3>
+            <p>Every time code is compiled or generated, AIPES saves the project to its database and appends a unique ID to your URL (e.g., <code>?id=a1b2c3d4</code>). To share your project with a friend, simply copy the full link from your browser's address bar and send it. When they open it, they will see your exact code!</p>
+
+            <h3>4. How to Compile ⚙️</h3>
+            <p>Before uploading, you must convert the text code into machine language (binary). Follow these steps:</p>
+            <ol>
+                <li>Select your <strong>Board</strong> from the dropdown menu (ESP32-C3 or Classic ESP32).</li>
+                <li>Select the <strong>OTA / Upload Mode</strong>.</li>
+                <li>Click the blue <strong>⚙️ Compile Code</strong> button. The server will handle the heavy lifting using <code>arduino-cli</code> and return a green success message.</li>
+            </ol>
+
+            <h3>5. Upload Methods 🚀</h3>
+            <p>AIPES supports 4 amazing ways to flash your board:</p>
+            <ul>
+                <li><strong>USB Only (WebSerial):</strong> Connect the board via USB cable. Requires Google Chrome or Edge. The system performs a <em>Full Flash</em> (Bootloader, Partitions, and App) right from the browser. Best for first-time setup.</li>
+                <li><strong>WiFi OTA (Station Mode):</strong> The AI-generated code will connect the board to your home router. Ideal for updating boards placed around your house via Wi-Fi.</li>
+                <li><strong>WiFi OTA (Access Point Mode):</strong> The board creates its own Wi-Fi network (e.g., "AIPES_OTA"). You connect your PC to this network and flash the code directly to it, no router needed!</li>
+                <li><strong>Bluetooth BLE OTA:</strong> Uses WebBluetooth technology. It is slower, but perfect for updating devices in the field where Wi-Fi is completely unavailable.</li>
+            </ul>
+            <p><em>⚠️ Important tip for WiFi Mode:</em> Because your board doesn't have an HTTPS certificate, Chrome might block the upload for security reasons (Mixed Content). Click the "Padlock" icon next to the URL in your browser, go to "Site Settings", and change the <strong>Insecure content</strong> permission to <strong>Allow</strong>.</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function switchLang(lang) {
+        document.getElementById('content-pt').style.display = lang === 'pt' ? 'block' : 'none';
+        document.getElementById('content-en').style.display = lang === 'en' ? 'block' : 'none';
+
+        const btns = document.querySelectorAll('.lang-btn');
+        btns[0].classList.toggle('active', lang === 'pt');
+        btns[1].classList.toggle('active', lang === 'en');
+    }
+</script>
+
+</body>
+</html>
